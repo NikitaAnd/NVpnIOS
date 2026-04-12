@@ -29,7 +29,7 @@ jobs:
 
       - name: Build APK
         run: gradle assembleDebug
-        working-directory: .dembel
+        working-directory: dembel
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
