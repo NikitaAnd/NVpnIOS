@@ -67,6 +67,19 @@ jobs:
           exit $GRADLE_EXIT
         working-directory: dembel
 
+      - name: Save build log on failure
+        if: failure()
+        run: |
+          mkdir -p ../debug-logs
+          cp build.log ../debug-logs/build-${GITHUB_RUN_ID}.log || true
+          cd ..
+          git config user.email "ci@local" || true
+          git config user.name "ci" || true
+          git add debug-logs/ 2>/dev/null || true
+          git commit -m "ci: build log run ${GITHUB_RUN_ID}" 2>/dev/null || true
+          git push 2>/dev/null || true
+        working-directory: dembel
+
       - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v4
