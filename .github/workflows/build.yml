@@ -20,20 +20,31 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Install Gradle 8.4
+        run: |
+          set -e
+          GRADLE_VERSION=8.4
+          if [ ! -d "/opt/gradle/gradle-${GRADLE_VERSION}" ]; then
+            sudo mkdir -p /opt/gradle
+            cd /tmp
+            wget -q "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" -O gradle.zip
+            sudo unzip -q gradle.zip -d /opt/gradle
+            rm gradle.zip
+          fi
+          echo "/opt/gradle/gradle-${GRADLE_VERSION}/bin" >> $GITHUB_PATH
+
       - name: Cache Gradle and AGP
         uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('dembel/gradle/wrapper/gradle-wrapper.properties', 'dembel/build.gradle', 'dembel/app/build.gradle') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('dembel/build.gradle', 'dembel/app/build.gradle') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Build APK with Gradle wrapper
+      - name: Build APK
         run: |
-          chmod +x gradlew
-          ./gradlew --no-daemon --stacktrace assembleDebug
+          gradle --no-daemon --stacktrace assembleDebug
         working-directory: dembel
 
       - name: Upload APK
