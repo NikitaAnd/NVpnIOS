@@ -49,12 +49,16 @@ jobs:
         run: yes | sdkmanager --licenses
 
       - name: Build APK
+        id: build
         run: |
-          gradle --no-daemon --stacktrace --info assembleDebug 2>&1 | tee build.log
-          echo "=== APK files ==="
-          find . -name "*.apk" -not -path "*/.gradle/*" 2>/dev/null
-          echo "=== Build outputs ==="
-          ls -la app/build/outputs/apk/debug/ 2>/dev/null || true
+          set -o pipefail
+          gradle --no-daemon --stacktrace assembleDebug 2>&1 | tee build.log | tail -200
+          echo "=== After build ==="
+          echo "::group::Find APK files"
+          find . -name "*.apk" -not -path "*/.gradle/*" 2>/dev/null || echo "no APK found"
+          echo "::endgroup::"
+          echo "=== outputs dir ==="
+          ls -la app/build/outputs/ 2>/dev/null || echo "no outputs dir"
         working-directory: dembel
 
       - name: Upload build log
@@ -66,11 +70,9 @@ jobs:
           if-no-files-found: ignore
 
       - name: Upload APK
-        if: always()
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: dembel-apk
-          path: |
-            dembel/app/build/outputs/apk/debug/*.apk
-            dembel/**/build/outputs/apk/debug/*.apk
-          if-no-files-found: warn
+          path: dembel/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
