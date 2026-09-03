@@ -19,13 +19,10 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Install Gradle
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gradle
-
-      - name: Go to project directory
-        run: cd dembel
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.4
 
       - name: Build APK
         run: gradle assembleDebug
@@ -35,4 +32,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dembel-apk
-          path: .dembel/app/build/outputs/apk/debug/*.apk
+          path: dembel/app/build/outputs/apk/debug/*.apk
