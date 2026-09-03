@@ -50,8 +50,17 @@ jobs:
 
       - name: Build APK
         run: |
-          gradle --no-daemon --stacktrace assembleDebug
+          gradle --no-daemon --stacktrace --info assembleDebug 2>&1 | tee build.log
+          echo "EXIT_CODE=$?"
         working-directory: dembel
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: dembel/build.log
+          if-no-files-found: ignore
 
       - name: Upload APK
         if: always()
