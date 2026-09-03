@@ -31,7 +31,10 @@ jobs:
             sudo unzip -q gradle.zip -d /opt/gradle
             rm gradle.zip
           fi
+          echo "GRADLE_HOME=/opt/gradle/gradle-${GRADLE_VERSION}" >> $GITHUB_ENV
           echo "/opt/gradle/gradle-${GRADLE_VERSION}/bin" >> $GITHUB_PATH
+          which gradle
+          gradle --version 2>&1 | head -5
 
       - name: Cache Gradle and AGP
         uses: actions/cache@v4
@@ -69,16 +72,11 @@ jobs:
 
       - name: Save build log on failure
         if: failure()
-        run: |
-          mkdir -p ../debug-logs
-          cp build.log ../debug-logs/build-${GITHUB_RUN_ID}.log || true
-          cd ..
-          git config user.email "ci@local" || true
-          git config user.name "ci" || true
-          git add debug-logs/ 2>/dev/null || true
-          git commit -m "ci: build log run ${GITHUB_RUN_ID}" 2>/dev/null || true
-          git push 2>/dev/null || true
-        working-directory: dembel
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-failed
+          path: dembel/build.log
+          if-no-files-found: ignore
 
       - name: Upload build log
         if: always()
