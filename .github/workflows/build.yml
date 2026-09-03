@@ -51,14 +51,16 @@ jobs:
       - name: Build APK
         id: build
         run: |
-          set -o pipefail
-          gradle --no-daemon --stacktrace assembleDebug 2>&1 | tee build.log | tail -200
-          echo "=== After build ==="
-          echo "::group::Find APK files"
-          find . -name "*.apk" -not -path "*/.gradle/*" 2>/dev/null || echo "no APK found"
-          echo "::endgroup::"
+          set +e
+          gradle --no-daemon --stacktrace assembleDebug > build.log 2>&1
+          GRADLE_EXIT=$?
+          echo "gradle exit=$GRADLE_EXIT"
+          tail -100 build.log
+          echo "=== Find APK files ==="
+          find . -name "*.apk" -not -path "*/.gradle/*" 2>/dev/null
           echo "=== outputs dir ==="
           ls -la app/build/outputs/ 2>/dev/null || echo "no outputs dir"
+          exit $GRADLE_EXIT
         working-directory: dembel
 
       - name: Upload build log
